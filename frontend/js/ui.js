@@ -1,5 +1,9 @@
 // ui.js — pure DOM helpers: HTML-escaping, toasts, badges, staged consensus
-// loader, and escrow-card rendering. No blockchain logic lives here.
+// pipeline, and escrow-card rendering. No blockchain logic lives here.
+//
+// Public export surface (consumed by app.js — keep stable):
+//   esc, $, $$, toWei, fromWei, shortAddr, timeLeft, stateBadge, toast,
+//   startConsensus, renderEscrowCard
 
 // ---------------------------------------------------------------------------
 // Security: escape ALL untrusted strings before they touch innerHTML.
@@ -32,7 +36,7 @@ export function fromWei(value, maxFrac = 4) {
   const whole = v / WEI;
   const frac = v % WEI;
   if (frac === 0n) return whole.toString();
-  let fracStr = frac.toString().padStart(18, "0").slice(0, maxFrac).replace(/0+$/, "");
+  const fracStr = frac.toString().padStart(18, "0").slice(0, maxFrac).replace(/0+$/, "");
   return fracStr ? `${whole}.${fracStr}` : whole.toString();
 }
 
@@ -66,7 +70,9 @@ export function timeLeft(deadlineSec) {
 }
 
 // ---------------------------------------------------------------------------
-// State badges
+// State badges — colour is driven entirely by CSS:
+//   CREATED = cyan · DISPUTED = orange · RELEASED = emerald ·
+//   REFUNDED = rose · RESOLVED = teal/green
 // ---------------------------------------------------------------------------
 const BADGES = {
   CREATED: "badge-created",
@@ -77,9 +83,9 @@ const BADGES = {
 };
 
 export function stateBadge(state) {
-  const s = esc(state);
   const cls = BADGES[state] || "badge-created";
-  return `<span class="badge ${cls}">${s}</span>`;
+  const dot = state === "DISPUTED" ? '<span class="badge-dot"></span>' : "";
+  return `<span class="badge ${cls}">${dot}${esc(state)}</span>`;
 }
 
 // ---------------------------------------------------------------------------
@@ -107,17 +113,18 @@ export function toast(type, message, ttl = 5200) {
 }
 
 // ---------------------------------------------------------------------------
-// Staged consensus overlay — animated multi-step indicator shown while the
-// AI validators evaluate a dispute.
+// Staged AI-consensus pipeline overlay — animated multi-step indicator shown
+// while validators evaluate a dispute. Stage names mirror the on-chain flow:
+//   Fetch Evidence -> Sanitize HTML -> Run LLM Consensus -> Reach Verdict
 // ---------------------------------------------------------------------------
 const CONSENSUS_STAGES = [
   "Broadcasting resolution request",
-  "Leader fetching evidence URL",
-  "Sanitizing untrusted content",
-  "Running AI arbiter (multimodal)",
+  "Fetching live evidence URL",
+  "Sanitizing & fencing untrusted HTML",
+  "Running multimodal LLM arbiter",
   "Validators re-evaluating independently",
   "Reaching optimistic-democracy consensus",
-  "Settling funds on-chain",
+  "Settling verdict on-chain",
 ];
 
 export function startConsensus(title = "Resolving dispute via AI consensus") {
@@ -126,11 +133,12 @@ export function startConsensus(title = "Resolving dispute via AI consensus") {
   const heading = $("#consensus-title");
   if (!overlay || !list) return { advance() {}, done() {}, fail() {} };
 
-  heading.textContent = title;
+  if (heading) heading.textContent = title;
   list.innerHTML = CONSENSUS_STAGES.map(
     (s, i) => `<li class="cstage" data-i="${i}">
       <span class="cdot"></span><span class="ctext">${esc(s)}</span></li>`
   ).join("");
+  overlay.classList.remove("failed");
   overlay.classList.add("open");
 
   let current = 0;
@@ -142,7 +150,7 @@ export function startConsensus(title = "Resolving dispute via AI consensus") {
   mark(0);
 
   // Auto-advance through the "soft" stages so the UI feels alive even though
-  // the real receipt only tells us start/finish.
+  // the real receipt only reports start/finish.
   const timer = setInterval(() => {
     if (current < CONSENSUS_STAGES.length - 2) mark(++current);
   }, 1400);
@@ -159,13 +167,14 @@ export function startConsensus(title = "Resolving dispute via AI consensus") {
     done() {
       clearInterval(timer);
       items.forEach((it) => it.classList.add("done"));
-      mark(CONSENSUS_STAGES.length - 1);
-      items[CONSENSUS_STAGES.length - 1]?.classList.add("done");
-      close(700);
+      const last = CONSENSUS_STAGES.length - 1;
+      items[last]?.classList.add("done");
+      close(750);
     },
     fail() {
+      clearInterval(timer);
       overlay.classList.add("failed");
-      close(400);
+      setTimeout(() => overlay.classList.remove("open"), 500);
       setTimeout(() => overlay.classList.remove("failed"), 1200);
     },
   };
@@ -176,8 +185,9 @@ export function startConsensus(title = "Resolving dispute via AI consensus") {
 // ---------------------------------------------------------------------------
 export function renderEscrowCard(e, ctx) {
   const id = esc(e.id);
-  const isBuyer = ctx.account && String(e.buyer).toLowerCase() === ctx.account.toLowerCase();
-  const isSeller = ctx.account && String(e.seller).toLowerCase() === ctx.account.toLowerCase();
+  const acct = ctx && ctx.account ? String(ctx.account).toLowerCase() : "";
+  const isBuyer = acct && String(e.buyer).toLowerCase() === acct;
+  const isSeller = acct && String(e.seller).toLowerCase() === acct;
   const roleTag = isBuyer
     ? `<span class="role role-buyer">You · Buyer</span>`
     : isSeller
@@ -185,7 +195,7 @@ export function renderEscrowCard(e, ctx) {
     : "";
 
   const verdict = e.verdict
-    ? `<div class="kv"><span>Verdict</span><b>${esc(e.verdict)}</b></div>`
+    ? `<div class="kv"><span>Verdict</span><b class="verdict-val">${esc(e.verdict)}</b></div>`
     : "";
   const evidence = e.evidence_url
     ? `<div class="kv"><span>Evidence</span>
@@ -193,17 +203,17 @@ export function renderEscrowCard(e, ctx) {
             class="link">${esc(shortAddr(e.evidence_url))} ↗</a></div>`
     : "";
 
-  return `<article class="card escrow" data-id="${id}">
+  return `<article class="card escrow glass" data-id="${id}">
     <header class="escrow-head">
-      <div class="escrow-id">#${id} ${roleTag}</div>
+      <div class="escrow-id"><span class="hash">#${id}</span> ${roleTag}</div>
       ${stateBadge(e.state)}
     </header>
     <p class="escrow-desc">${esc(e.description)}</p>
     <div class="escrow-grid">
       <div class="kv"><span>Amount</span><b class="amt">${esc(fromWei(e.amount))} GEN</b></div>
+      <div class="kv"><span>Deadline</span><b>${esc(timeLeft(e.deadline))}</b></div>
       <div class="kv"><span>Buyer</span><b title="${esc(e.buyer)}">${esc(shortAddr(e.buyer))}</b></div>
       <div class="kv"><span>Seller</span><b title="${esc(e.seller)}">${esc(shortAddr(e.seller))}</b></div>
-      <div class="kv"><span>Deadline</span><b>${esc(timeLeft(e.deadline))}</b></div>
       ${verdict}
       ${evidence}
     </div>
@@ -219,21 +229,15 @@ function renderActions(e, { isBuyer, isSeller }) {
   if (e.state === "CREATED") {
     if (isSeller) btns.push(act(id, "submit", "Submit Evidence", "ghost"));
     if (isBuyer) btns.push(act(id, "release", "Release Funds", "primary"));
-    if (isSeller || ctxIsOwnerless()) btns.push(act(id, "refund", "Refund Buyer", "ghost"));
+    if (isSeller) btns.push(act(id, "refund", "Refund Buyer", "ghost"));
     if (isBuyer || isSeller) btns.push(act(id, "dispute", "Open Dispute", "warn"));
     if (expired) btns.push(act(id, "claim", "Claim (timeout)", "ghost"));
   } else if (e.state === "DISPUTED") {
-    btns.push(act(id, "resolve", "Trigger AI Consensus", "primary"));
+    btns.push(act(id, "resolve", "Trigger AI Consensus", "consensus"));
   }
 
   if (!btns.length) return "";
   return `<footer class="escrow-actions">${btns.join("")}</footer>`;
-}
-
-// refund is also allowed for the owner; role isn't known per-card here, so we
-// surface it for the seller and let the contract enforce authorization.
-function ctxIsOwnerless() {
-  return false;
 }
 
 function act(id, action, label, variant) {

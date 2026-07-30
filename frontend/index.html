@@ -6,7 +6,7 @@
     <title>Escrogen · AI-Powered Smart Escrow</title>
     <meta
       name="description"
-      content="Escrogen — trust-minimized escrow on GenLayer with AI-consensus dispute resolution."
+      content="Escrogen — trust-minimized escrow on GenLayer with multimodal AI-consensus dispute resolution."
     />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>" />
 
@@ -17,9 +17,9 @@
         theme: {
           extend: {
             colors: {
-              ink: "#05070e",
-              panel: "#0b1020",
-              brand: { DEFAULT: "#6366f1", cyan: "#22d3ee", emerald: "#34d399" },
+              ink: "#04060d",
+              panel: "#0a0e1c",
+              brand: { DEFAULT: "#7c3aed", cyan: "#22d3ee", violet: "#a855f7", emerald: "#34d399" },
             },
             fontFamily: {
               sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
@@ -30,16 +30,17 @@
       };
     </script>
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles.css" />
   </head>
 
-  <body class="min-h-screen bg-ink text-slate-200 font-sans antialiased selection:bg-indigo-500/30">
+  <body class="min-h-screen bg-ink text-slate-200 font-sans antialiased selection:bg-violet-500/30">
     <!-- ambient background -->
-    <div class="bg-orbs" aria-hidden="true">
+    <div class="bg-fx" aria-hidden="true">
       <span class="orb orb-1"></span><span class="orb orb-2"></span><span class="orb orb-3"></span>
+      <div class="scanline"></div>
     </div>
 
     <!-- ===================== HEADER ===================== -->
@@ -47,19 +48,25 @@
       <div class="wrap header-inner">
         <div class="brand">
           <span class="brand-mark">🛡️</span>
-          <div>
+          <div class="brand-text">
             <h1 class="brand-name">Escrogen</h1>
             <p class="brand-tag">AI-consensus smart escrow</p>
           </div>
-          <span class="net-chip"><span class="dot"></span>StudioNet</span>
+          <span class="net-chip" title="Connected to GenLayer StudioNet">
+            <span class="live-dot"></span>StudioNet <em>0xF22F</em>
+          </span>
         </div>
 
         <div class="header-actions">
+          <button id="guide-open" class="btn btn-ghost btn-sm" type="button">
+            <span aria-hidden="true">📖</span> How it works
+          </button>
           <div class="addr-config">
+            <span class="help" data-tip="Paste the deployed Escrogen contract address on StudioNet. Stored locally in your browser.">?</span>
             <input
               id="contract-input"
               class="addr-input"
-              placeholder="0x… Escrogen contract address"
+              placeholder="0x… Escrogen contract"
               spellcheck="false"
               autocomplete="off"
             />
@@ -74,34 +81,69 @@
       </div>
     </header>
 
+    <!-- ===================== HERO ===================== -->
+    <section class="wrap hero">
+      <div class="hero-copy">
+        <span class="hero-eyebrow">GenLayer Intelligent Contract</span>
+        <h2 class="hero-title">
+          Escrow settled by <span class="grad">AI&nbsp;consensus</span>,<br />not middlemen.
+        </h2>
+        <p class="hero-sub">
+          Lock funds against clear deliverables. If there's a dispute, GenLayer validators
+          independently inspect the live evidence and reach a canonical verdict — no human bias,
+          no custodian.
+        </p>
+        <div class="hero-cta">
+          <button class="btn btn-primary btn-lg" data-jump="create">Create an Escrow</button>
+          <button class="btn btn-outline btn-lg" id="guide-open-2" type="button">See how it works</button>
+        </div>
+      </div>
+      <div class="hero-card glass">
+        <div class="hero-card-glow"></div>
+        <div class="hero-pill"><span class="live-dot"></span> Live on StudioNet</div>
+        <ul class="hero-facts">
+          <li><b>≤ 2%</b><span>platform fee, seller-side only</span></li>
+          <li><b>100%</b><span>gross refunds — zero stranded fees</span></li>
+          <li><b>3</b><span>canonical AI verdicts</span></li>
+          <li><b>0</b><span>trusted human arbiters</span></li>
+        </ul>
+      </div>
+    </section>
+
     <!-- ===================== METRICS ===================== -->
     <section class="wrap metrics-section">
       <div class="metrics-head">
-        <h2 class="section-title">Platform Metrics</h2>
+        <h3 class="section-title">Platform Metrics</h3>
         <span id="platform-status" class="status-badge">—</span>
       </div>
       <div class="metrics-grid">
-        <div class="stat-card">
+        <div class="stat-card accent-cyan">
+          <span class="stat-ico">🔒</span>
           <span class="stat-label">Value Locked</span>
           <span id="m-tvl" class="stat-value">0 GEN</span>
         </div>
-        <div class="stat-card">
+        <div class="stat-card accent-violet">
+          <span class="stat-ico">📦</span>
           <span class="stat-label">Total Escrows</span>
           <span id="m-total" class="stat-value">0</span>
         </div>
-        <div class="stat-card">
+        <div class="stat-card accent-emerald">
+          <span class="stat-ico">⚡</span>
           <span class="stat-label">Active</span>
           <span id="m-active" class="stat-value">0</span>
         </div>
-        <div class="stat-card">
+        <div class="stat-card accent-orange">
+          <span class="stat-ico">⚖</span>
           <span class="stat-label">In Dispute</span>
           <span id="m-disputed" class="stat-value">0</span>
         </div>
-        <div class="stat-card">
+        <div class="stat-card accent-cyan">
+          <span class="stat-ico">💰</span>
           <span class="stat-label">Fees Collected</span>
           <span id="m-fees" class="stat-value">0 GEN</span>
         </div>
-        <div class="stat-card">
+        <div class="stat-card accent-violet">
+          <span class="stat-ico">%</span>
           <span class="stat-label">Fee Rate</span>
           <span id="m-rate" class="stat-value">0.00%</span>
         </div>
@@ -110,15 +152,16 @@
 
     <!-- ===================== TABS ===================== -->
     <nav class="wrap tabs" role="tablist">
-      <button class="tab active" data-tab="create" role="tab">＋ Create Escrow</button>
-      <button class="tab" data-tab="active" role="tab">▤ Active Escrows</button>
-      <button class="tab" data-tab="dispute" role="tab">⚖ Dispute Portal</button>
+      <button class="tab active" data-tab="create" role="tab"><span>＋</span> Create</button>
+      <button class="tab" data-tab="active" role="tab"><span>▤</span> Active Escrows</button>
+      <button class="tab" data-tab="dispute" role="tab"><span>⚖</span> Dispute Portal</button>
+      <button class="tab" data-tab="guide" role="tab"><span>📖</span> How it Works</button>
     </nav>
 
     <main class="wrap main">
       <!-- ---------- CREATE ---------- -->
       <section class="panel active" data-panel="create" role="tabpanel">
-        <div class="card form-card">
+        <div class="card form-card glass">
           <h3 class="card-title">Create &amp; Fund an Escrow</h3>
           <p class="card-sub">
             Funds are held by the contract until you release them, both parties agree to a refund,
@@ -126,24 +169,31 @@
           </p>
           <form id="create-form" class="form-grid" novalidate>
             <label class="field md:col-span-2">
-              <span class="field-label">Seller Address</span>
+              <span class="field-label">Seller Address
+                <span class="help" data-tip="The wallet that receives the funds when you release, or when the AI rules RELEASE_TO_SELLER. Must differ from you.">?</span>
+              </span>
               <input id="f-seller" class="input mono" placeholder="0x…" autocomplete="off" spellcheck="false" required />
             </label>
 
             <label class="field">
-              <span class="field-label">Amount (GEN)</span>
+              <span class="field-label">Amount (GEN)
+                <span class="help" data-tip="Native GEN locked into escrow. Sent as transaction value; refunds are always 100% gross.">?</span>
+              </span>
               <input id="f-amount" class="input" inputmode="decimal" placeholder="1.0" required />
               <span id="amount-preview" class="field-hint"></span>
             </label>
 
             <label class="field">
-              <span class="field-label">Expiration (hours)</span>
+              <span class="field-label">Expiration (hours)
+                <span class="help" data-tip="After this window, funds can be auto-settled by timeout: released if evidence was submitted, refunded otherwise.">?</span>
+              </span>
               <input id="f-hours" class="input" type="number" min="1" step="1" value="72" required />
-              <span class="field-hint">Auto-timeout after this window.</span>
+              <span class="field-hint">Auto-timeout safeguard.</span>
             </label>
 
             <label class="field md:col-span-2">
               <span class="field-label">Deliverable Description
+                <span class="help" data-tip="Plain-language acceptance criteria the AI checks the evidence against. Max 500 chars. Treated as inert, fenced data — injection attempts are ignored.">?</span>
                 <em class="counter" id="desc-counter">0/500</em></span>
               <textarea id="f-desc" class="input textarea" maxlength="500" rows="3"
                 placeholder="What must the seller deliver for funds to be released?" required></textarea>
@@ -176,8 +226,20 @@
 
       <!-- ---------- DISPUTE PORTAL ---------- -->
       <section class="panel" data-panel="dispute" role="tabpanel">
+        <!-- always-visible pipeline diagram -->
+        <div class="card glass pipeline-card">
+          <h3 class="card-title">AI Consensus Pipeline</h3>
+          <p class="card-sub">When a dispute is triggered, every validator independently runs this pipeline and agrees only on the final verdict.</p>
+          <ol class="pipeline">
+            <li class="pstep"><span class="pnum">1</span><span class="pico">🌐</span><b>Fetch Evidence</b><small>render live URL</small></li>
+            <li class="pstep"><span class="pnum">2</span><span class="pico">🧼</span><b>Sanitize HTML</b><small>strip &amp; fence</small></li>
+            <li class="pstep"><span class="pnum">3</span><span class="pico">🧠</span><b>LLM Consensus</b><small>multimodal arbiter</small></li>
+            <li class="pstep"><span class="pnum">4</span><span class="pico">✅</span><b>Reach Verdict</b><small>canonical enum</small></li>
+          </ol>
+        </div>
+
         <div class="dispute-grid">
-          <div class="card form-card">
+          <div class="card form-card glass">
             <h3 class="card-title">Submit Evidence</h3>
             <p class="card-sub">
               Sellers attach a public URL proving the deliverable. Content is sanitized and fenced
@@ -185,18 +247,22 @@
             </p>
             <form id="evidence-form" class="form-grid" novalidate>
               <label class="field">
-                <span class="field-label">Escrow ID</span>
+                <span class="field-label">Escrow ID
+                  <span class="help" data-tip="The numeric id shown on the escrow card (e.g. #0).">?</span>
+                </span>
                 <input id="ev-id" class="input" type="number" min="0" placeholder="0" required />
               </label>
               <label class="field">
-                <span class="field-label">Evidence URL</span>
+                <span class="field-label">Evidence URL
+                  <span class="help" data-tip="Public http(s) link, max 300 chars. Scraped HTML is stripped of scripts/tags and wrapped in UNTRUSTED fences so prompt-injection text is treated as inert data.">?</span>
+                </span>
                 <input id="ev-url" class="input mono" placeholder="https://…" required />
               </label>
               <button id="ev-submit" type="submit" class="btn btn-primary md:col-span-2">Submit Evidence</button>
             </form>
           </div>
 
-          <div class="card form-card">
+          <div class="card form-card glass">
             <h3 class="card-title">Trigger AI Consensus</h3>
             <p class="card-sub">
               For a <b>disputed</b> escrow, validators independently fetch the evidence, run the
@@ -219,6 +285,50 @@
           </div>
         </div>
       </section>
+
+      <!-- ---------- GUIDE / HOW IT WORKS ---------- -->
+      <section class="panel" data-panel="guide" role="tabpanel">
+        <div class="guide-head">
+          <h3 class="card-title">How Escrogen Works</h3>
+          <p class="card-sub">Four steps from locked funds to trust-minimized settlement.</p>
+        </div>
+        <div class="steps-grid">
+          <article class="card glass step-card accent-cyan">
+            <div class="step-badge">01</div>
+            <div class="step-ico">🔒</div>
+            <h4>Create Escrow</h4>
+            <p>The buyer locks GEN and writes plain-language deliverable requirements. Funds are held by the contract — nobody can move them unilaterally.</p>
+          </article>
+          <article class="card glass step-card accent-violet">
+            <div class="step-badge">02</div>
+            <div class="step-ico">📤</div>
+            <h4>Delivery &amp; Verification</h4>
+            <p>The seller submits a public evidence URL. It is stripped of scripts/tags and wrapped in <span class="mono">&lt;UNTRUSTED&gt;</span> fences before the AI ever reads it.</p>
+          </article>
+          <article class="card glass step-card accent-orange">
+            <div class="step-badge">03</div>
+            <div class="step-ico">🧠</div>
+            <h4>AI Dispute Resolution</h4>
+            <p>GenLayer's multimodal LLM consensus inspects the live evidence against the rules — validators re-run independently and agree only on the canonical verdict.</p>
+          </article>
+          <article class="card glass step-card accent-emerald">
+            <div class="step-badge">04</div>
+            <div class="step-ico">⚡</div>
+            <h4>Instant Settlement</h4>
+            <p>Based on consensus, funds release to the seller, refund gross to the buyer, or split — settled on-chain automatically, no human arbiter.</p>
+          </article>
+        </div>
+
+        <div class="card glass guide-verdicts">
+          <h4 class="card-title" style="font-size:16px">Canonical Verdicts</h4>
+          <div class="vgrid">
+            <div><span class="badge badge-released">RELEASE_TO_SELLER</span><p>Deliverable clearly meets the requirements.</p></div>
+            <div><span class="badge badge-refunded">REFUND_TO_BUYER</span><p>Missing, failed, or unusable — buyer refunded in full.</p></div>
+            <div><span class="badge badge-resolved">SPLIT_FEE_50_50</span><p>Partial or genuinely ambiguous delivery.</p></div>
+          </div>
+          <p class="guide-note">🛡️ Off-enum or malformed AI output raises <span class="mono">[LLM_ERROR]</span>, forcing validator rotation instead of settling on corrupted results.</p>
+        </div>
+      </section>
     </main>
 
     <footer class="wrap site-footer">
@@ -228,7 +338,7 @@
 
     <!-- ===================== NETWORK OVERLAY ===================== -->
     <div id="network-overlay" class="overlay">
-      <div class="overlay-card">
+      <div class="overlay-card glass">
         <div class="overlay-icon">🔀</div>
         <h2>Wrong Network</h2>
         <p>
@@ -241,10 +351,28 @@
 
     <!-- ===================== CONSENSUS OVERLAY ===================== -->
     <div id="consensus" class="overlay consensus-overlay">
-      <div class="overlay-card consensus-card">
-        <div class="consensus-orbit"><span></span><span></span><span></span></div>
+      <div class="overlay-card consensus-card glass">
+        <div class="consensus-orbit"><span></span><span></span><span></span><i>🧠</i></div>
         <h2 id="consensus-title">Resolving dispute via AI consensus</h2>
+        <p class="consensus-sub">Validators are executing the pipeline independently…</p>
         <ul id="consensus-stages" class="consensus-stages"></ul>
+      </div>
+    </div>
+
+    <!-- ===================== GUIDE MODAL (onboarding) ===================== -->
+    <div id="guide-modal" class="overlay">
+      <div class="overlay-card glass guide-modal-card">
+        <button id="guide-close" class="modal-close" aria-label="Close">✕</button>
+        <div class="overlay-icon">🛡️</div>
+        <h2>Welcome to Escrogen</h2>
+        <p>Trust-minimized escrow settled by AI consensus. Here's the 30-second version:</p>
+        <ol class="modal-steps">
+          <li><span class="ms-ico accent-cyan">🔒</span><div><b>Create &amp; fund</b><small>Buyer locks GEN with deliverable rules.</small></div></li>
+          <li><span class="ms-ico accent-violet">📤</span><div><b>Submit evidence</b><small>Seller posts a public proof URL.</small></div></li>
+          <li><span class="ms-ico accent-orange">🧠</span><div><b>AI consensus</b><small>Validators inspect evidence vs. rules.</small></div></li>
+          <li><span class="ms-ico accent-emerald">⚡</span><div><b>Auto-settle</b><small>Release, refund, or split — on-chain.</small></div></li>
+        </ol>
+        <button id="guide-modal-cta" class="btn btn-primary btn-lg" type="button">Get started</button>
       </div>
     </div>
 
@@ -253,10 +381,37 @@
 
     <script type="module" src="./js/app.js"></script>
     <script type="module">
-      // tiny description counter (kept inline; no state needed)
-      const d = document.getElementById("f-desc"),
-        c = document.getElementById("desc-counter");
+      // Self-contained UI wiring that does NOT touch contract/wallet logic:
+      // description counter, hero jump buttons, and the onboarding guide modal.
+      const q = (s) => document.querySelector(s);
+
+      const d = q("#f-desc"), c = q("#desc-counter");
       if (d && c) d.addEventListener("input", () => (c.textContent = `${d.value.length}/500`));
+
+      // Hero CTA -> switch to the Create tab (reuses existing tab buttons).
+      document.querySelectorAll("[data-jump]").forEach((b) =>
+        b.addEventListener("click", () => q(`.tab[data-tab="${b.dataset.jump}"]`)?.click())
+      );
+
+      // Guide modal open/close.
+      const modal = q("#guide-modal");
+      const open = () => modal?.classList.add("open");
+      const close = () => modal?.classList.remove("open");
+      ["#guide-open", "#guide-open-2"].forEach((id) => q(id)?.addEventListener("click", open));
+      q("#guide-close")?.addEventListener("click", close);
+      q("#guide-modal-cta")?.addEventListener("click", () => {
+        close();
+        q('.tab[data-tab="create"]')?.click();
+      });
+      modal?.addEventListener("click", (e) => { if (e.target === modal) close(); });
+
+      // Auto-open once for first-time visitors.
+      try {
+        if (!localStorage.getItem("escrogen.seenGuide")) {
+          open();
+          localStorage.setItem("escrogen.seenGuide", "1");
+        }
+      } catch {}
     </script>
   </body>
 </html>

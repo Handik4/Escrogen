@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Test / tooling caches & artifacts
+.pytest_cache/
+.gltest_cache/
+artifacts/
+
+# GenLayer / secrets
+.env
+.env.*
+*.key
+
+# Claude Code local settings (machine-specific, not project source)
+.claude/
+
+# Node / frontend tooling
+node_modules/
+
+# OS
+.DS_Store

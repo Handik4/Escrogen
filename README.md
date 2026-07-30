@@ -1,4 +1,4 @@
-# Escrogen (GenEscrow v2)
+# Escrogen
 
 AI-powered, prompt-injection-hardened smart escrow built as a **GenLayer
 Intelligent Contract**, with a dispute-resolution flow settled by
